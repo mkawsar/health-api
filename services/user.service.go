@@ -1,0 +1,68 @@
+package services
+
+import (
+	"errors"
+	db "health/models/db"
+
+	"github.com/kamva/mgm/v3"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
+)
+
+// CreateUser creates a new user in the MongoDB database.
+// The password is hashed using bcrypt.
+// The user is created with the role "user".
+// If the user cannot be created, an error is returned.
+func CreateUser(name string, email string, password string) (*db.User, error) {
+	pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("cannot generate hashed password")
+	}
+
+	user := db.NewUser(email, string(pass), name, db.RoleUser)
+	err = mgm.Coll(user).Create(user)
+	if err != nil {
+		return nil, errors.New("cannot create new user")
+	}
+
+	return user, nil
+}
+
+// FindUserById retrieves a user from the MongoDB database by the given ObjectID.
+// If the user does not exist, an error is returned.
+func FindUserById(userId primitive.ObjectID) (*db.User, error) {
+	user := &db.User{}
+	err := mgm.Coll(user).FindByID(userId, user)
+	if err != nil {
+		return nil, errors.New("cannot find user")
+	}
+
+	return user, nil
+}
+
+// FindUserByEmail retrieves a user from the MongoDB database by the given email address.
+// If the user does not exist, an error is returned.
+func FindUserByEmail(email string) (*db.User, error) {
+	user := &db.User{}
+	err := mgm.Coll(user).First(bson.M{"email": email}, user)
+	if err != nil {
+		return nil, errors.New("cannot find user")
+	}
+
+	return user, nil
+}
+
+// CheckUserMail checks if a user with the given email address already exists in the MongoDB database.
+// If such a user exists, an error is returned.
+// If no such user exists, the function returns nil.
+func CheckUserMail(email string) error {
+	user := &db.User{}
+	userCollection := mgm.Coll(user)
+	err := userCollection.First(bson.M{"email": email}, user)
+	if err == nil {
+		return errors.New("email is already in use")
+	}
+
+	return nil
+}
