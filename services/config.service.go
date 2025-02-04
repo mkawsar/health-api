@@ -1,7 +1,8 @@
 package services
 
 import (
-	"gin-mongo-api/models"
+	"health/models"
+
 	"github.com/spf13/viper"
 )
 

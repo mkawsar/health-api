@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gin-mongo-api/services"
+	"health/services"
 )
 
 func main() {
