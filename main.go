@@ -1,13 +1,9 @@
 package main
 
 import (
-	"log"
-	"github.com/joho/godotenv"
+	"gin-mongo-api/services"
 )
 
-func LoadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found")
-	}
+func main() {
+	services.LoadConfig()
 }
