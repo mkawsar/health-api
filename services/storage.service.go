@@ -64,7 +64,7 @@ func GetRedisCache() *cache.Cache {
 
 // RedisCacheConnection attempts to ping the Redis server using the default client instance.
 // If the ping fails, it will panic. Otherwise, it will log a message indicating that the connection was successful.
-func RedisCacheConnection() {
+func CheckRedisCacheConnection() {
 	redisClient := GetRedisDefaultClient()
 	err := redisClient.Ping(context.Background()).Err()
 
