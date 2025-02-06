@@ -19,6 +19,7 @@ func New() *gin.Engine {
 	v1 := r.Group("/v1")
 	{
 		PingRoute(v1)
+		AuthRoute(v1)
 	}
 	return r
 }
