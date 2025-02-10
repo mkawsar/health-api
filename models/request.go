@@ -56,7 +56,7 @@ func (a RefreshRequest) Validate() error {
 		validation.Field(
 			&a.Token,
 			validation.Required,
-			validation.Match(regexp.MustCompile(`^\\S+$`)).Error("cannot contain whitespaces"),
+			validation.Match(regexp.MustCompile(`^\S+$`)).Error("cannot contain whitespaces"),
 		),
 	)
 }

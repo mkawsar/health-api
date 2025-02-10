@@ -19,7 +19,7 @@ import (
 func CreateToken(user *db.User, tokenType string, expiresAt time.Time) (*db.Token, error) {
 	claims := &db.UserClaims{
 		Email: user.Email,
-		Type: tokenType,
+		Type:  tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
@@ -27,16 +27,18 @@ func CreateToken(user *db.User, tokenType string, expiresAt time.Time) (*db.Toke
 		},
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(Config.JWTSecretKey))
 	if err != nil {
 		return nil, errors.New("cannot create access token")
 	}
+
 	tokenModel := db.NewToken(user.ID, tokenString, tokenType, expiresAt)
 	err = mgm.Coll(tokenModel).Create(tokenModel)
 	if err != nil {
 		return nil, errors.New("cannot save access token to db")
 	}
+
 	return tokenModel, nil
 }
 
