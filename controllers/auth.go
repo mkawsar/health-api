@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -140,6 +141,27 @@ func Refresh(c *gin.Context) {
 		"token": gin.H{
 			"access":  accessToken.GetResponseJson(),
 			"refresh": refreshToken.GetResponseJson()},
+	}
+	response.SendResponse(c)
+}
+
+func GetAuthProfile(c *gin.Context) {
+	response := &models.Response{
+		StatusCode: http.StatusBadRequest,
+		Success:    false,
+	}
+	userId, exists := c.Get("userId")
+	
+	if !exists {
+		response.Message = "cannot get user"
+		response.SendResponse(c)
+		return
+	}
+	user, _ := services.FindUserById(userId.(primitive.ObjectID))
+	response.StatusCode = http.StatusOK
+	response.Success = true
+	response.Data = gin.H{
+		"user": user,
 	}
 	response.SendResponse(c)
 }
