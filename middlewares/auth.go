@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"health/models"
 	db "health/models/db"
 	"health/services"
+	"health/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -17,12 +17,12 @@ func JwtMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader("Authorization")
 		if token == "" {
-			models.SendErrorResponse(ctx, http.StatusUnauthorized, "token is required")
+			utils.ErrorResponse(ctx, http.StatusUnauthorized, "token is required")
 			return
 		}
 		tokenModel, err := services.VerifyToken(token, db.TokenTypeAccess)
 		if err != nil {
-			models.SendErrorResponse(ctx, http.StatusUnauthorized, err.Error())
+			utils.ErrorResponse(ctx, http.StatusUnauthorized, err.Error())
 			return
 		}
 

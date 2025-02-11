@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"health/models"
+	"health/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +13,8 @@ import (
 func AppRecovery() func(ctx *gin.Context, recovered interface{}) {
 	return func(ctx *gin.Context, recovered interface{}) {
 		if err, ok := recovered.(string); ok {
-			models.SendErrorResponse(ctx, http.StatusInternalServerError, err)
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, err)
+			return
 		}
 
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"success": false})

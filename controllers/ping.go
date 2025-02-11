@@ -1,18 +1,12 @@
 package controllers
 
 import (
-	"health/models"
+	"health/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func Ping(ctx *gin.Context) {
-	response := &models.Response {
-		StatusCode: http.StatusOK,
-		Success: true,
-		Message: "pong",
-	}
-
-	response.SendResponse(ctx)
+	utils.SuccessResponse(ctx, http.StatusOK, "Pong")
 }

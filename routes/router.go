@@ -2,13 +2,14 @@ package routes
 
 import (
 	"health/middlewares"
-	"health/models"
 	"health/services"
+	"health/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
+// New returns a new gin.Engine instance with routes and middlewares set up.
 func New() *gin.Engine {
 	r := gin.New()
 	initRoutes(r)
@@ -25,18 +26,22 @@ func New() *gin.Engine {
 	return r
 }
 
+// initRoutes sets up the router to redirect trailing slashes, handle
+// method-not-allowed and not-found requests, and sets up custom 404 handlers.
 func initRoutes(r *gin.Engine) {
 	_ = r.SetTrustedProxies(nil)
 	r.RedirectTrailingSlash = false
 	r.HandleMethodNotAllowed = true
 	r.NoRoute(func(ctx *gin.Context) {
-		models.SendErrorResponse(ctx, http.StatusNotFound, ctx.Request.RequestURI+" not found")
+		utils.ErrorResponse(ctx, http.StatusNotFound, ctx.Request.RequestURI+" not found")
 	})
 	r.NoMethod(func(ctx *gin.Context) {
-		models.SendErrorResponse(ctx, http.StatusMethodNotAllowed, ctx.Request.Method+" is not allowed here")
+		utils.ErrorResponse(ctx, http.StatusNotFound, ctx.Request.Method+" is not allowed here")
 	})
 }
 
+// InitGin configures the Gin mode to the mode specified in the configuration.
+// It is called once during application startup.
 func InitGin() {
 	gin.DisableConsoleColor()
 	gin.SetMode(services.Config.Mode)

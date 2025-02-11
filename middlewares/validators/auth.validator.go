@@ -2,6 +2,7 @@ package validators
 
 import (
 	"health/models"
+	"health/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ func RegisterValidator() gin.HandlerFunc {
 		_ = ctx.ShouldBindBodyWith(&registerRequest, binding.JSON)
 
 		if err := registerRequest.Validate(); err != nil {
-			models.SendErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 			return
 		}
 		ctx.Next()
@@ -34,7 +35,7 @@ func LoginValidator() gin.HandlerFunc {
 		var loginRequest models.LoginRequest
 		_ = ctx.ShouldBindBodyWith(&loginRequest, binding.JSON)
 		if err := loginRequest.Validate(); err != nil {
-			models.SendErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 			return
 		}
 		ctx.Next()
@@ -50,7 +51,7 @@ func RefreshValidator() gin.HandlerFunc {
 		var refreshRequest models.RefreshRequest
 		_ = ctx.ShouldBindBodyWith(&refreshRequest, binding.JSON)
 		if err := refreshRequest.Validate(); err != nil {
-			models.SendErrorResponse(ctx, http.StatusBadRequest, err.Error())
+			utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 			return
 		}
 		ctx.Next()

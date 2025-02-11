@@ -4,6 +4,7 @@ import (
 	"health/models"
 	db "health/models/db"
 	"health/services"
+	"health/utils"
 	"net/http"
 	"strings"
 
@@ -16,16 +17,11 @@ import (
 func Register(ctx *gin.Context) {
 	var requestBody models.RegisterRequest
 	_ = ctx.ShouldBindBodyWith(&requestBody, binding.JSON)
-	response := &models.Response{
-		StatusCode: http.StatusBadRequest,
-		Success:    false,
-	}
 
 	err := services.CheckUserMail(requestBody.Email)
 
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(ctx)
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -33,16 +29,13 @@ func Register(ctx *gin.Context) {
 	user, err := services.CreateUser(requestBody.Name, requestBody.Email, requestBody.Password)
 
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(ctx)
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.Data = gin.H{
+	utils.SuccessResponse(ctx, http.StatusOK, gin.H{
 		"user": user,
-	}
-
-	response.SendResponse(ctx)
+	})
 }
 
 // Login is an endpoint that verifies the given email and password.
@@ -53,44 +46,32 @@ func Login(c *gin.Context) {
 	var requestBody models.LoginRequest
 	_ = c.ShouldBindBodyWith(&requestBody, binding.JSON)
 
-	response := &models.Response{
-		StatusCode: http.StatusBadRequest,
-		Success:    false,
-	}
-
 	// get user by email
 	user, err := services.FindUserByEmail(requestBody.Email)
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// check hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(requestBody.Password))
 	if err != nil {
-		response.Message = "email and password don't match"
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// generate new access tokens
 	accessToken, refreshToken, err := services.GenerateAccessTokens(user)
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	response.StatusCode = http.StatusOK
-	response.Success = true
-	response.Data = gin.H{
+	utils.SuccessResponse(c, http.StatusOK, gin.H{
 		"user": user,
-		"token": gin.H{
-			"access":  accessToken.GetResponseJson(),
-			"refresh": refreshToken.GetResponseJson()},
-	}
-	response.SendResponse(c)
+		"access":  accessToken.GetResponseJson(),
+		"refresh": refreshToken.GetResponseJson(),
+	})
 }
 
 // Refresh is a gin handler that refreshes an access token using a refresh token.
@@ -104,64 +85,46 @@ func Refresh(c *gin.Context) {
 	var requestBody models.RefreshRequest
 	_ = c.ShouldBindBodyWith(&requestBody, binding.JSON)
 
-	response := &models.Response{
-		StatusCode: http.StatusBadRequest,
-		Success:    false,
-	}
-
 	// check token validity
 	token, err := services.VerifyToken(requestBody.Token, db.TokenTypeRefresh)
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	user, err := services.FindUserById(token.User)
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// delete old token
 	err = services.DeleteTokenById(token.ID)
 	if err != nil {
-		response.Message = err.Error()
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	accessToken, refreshToken, _ := services.GenerateAccessTokens(user)
-	
-	response.StatusCode = http.StatusOK
-	response.Success = true
-	response.Data = gin.H{
+
+	utils.SuccessResponse(c, http.StatusOK, gin.H{
 		"user": user,
-		"token": gin.H{
-			"access":  accessToken.GetResponseJson(),
-			"refresh": refreshToken.GetResponseJson()},
-	}
-	response.SendResponse(c)
+		"access":  accessToken.GetResponseJson(),
+		"refresh": refreshToken.GetResponseJson(),
+	})
 }
 
+// GetAuthProfile is a gin handler that retrieves the user profile of the currently authenticated user.
+// The handler expects the user ID to be set in the gin context.
+// If the user ID is not set, the handler will send a 400 error response with the error message "cannot get user".
+// Otherwise, it will retrieve the user from the database and send a 200 response with the user in the response body.
 func GetAuthProfile(c *gin.Context) {
-	response := &models.Response{
-		StatusCode: http.StatusBadRequest,
-		Success:    false,
-	}
 	userId, exists := c.Get("userId")
-	
+
 	if !exists {
-		response.Message = "cannot get user"
-		response.SendResponse(c)
+		utils.ErrorResponse(c, http.StatusBadRequest, "cannot get user")
 		return
 	}
 	user, _ := services.FindUserById(userId.(primitive.ObjectID))
-	response.StatusCode = http.StatusOK
-	response.Success = true
-	response.Data = gin.H{
-		"user": user,
-	}
-	response.SendResponse(c)
+	utils.SuccessResponse(c, http.StatusOK, user)
 }

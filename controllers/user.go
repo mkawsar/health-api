@@ -1,9 +1,8 @@
 package controllers
 
 import (
-	"health/models"
 	"health/services"
-	"net/http"
+	"health/utils"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -16,26 +15,10 @@ import (
 // The response also contains "prev" and "next" keys that indicate
 // whether there are previous and next pages of results, respectively.
 func GetUsers(ctx *gin.Context) {
-	response := &models.Response{
-		StatusCode: http.StatusBadRequest,
-		Success:    false,
-	}
-
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))
 	nameFilter := ctx.Query("name")
-	users, totalUsers, _ := services.GetUSers(ctx.Request.Context(), page, limit, nameFilter)
+	users, total, _ := services.GetUSers(ctx.Request.Context(), page, limit, nameFilter)
 
-	response.StatusCode = http.StatusOK
-	response.Success = true
-	response.Data = gin.H{
-		"users": users,
-		"pagination": gin.H{
-			"current_page": page,
-			"per_page":     limit,
-			"total_users":  totalUsers,
-			"total_pages":  (totalUsers + int64(limit) - 1) / int64(limit),
-		},
-	}
-	response.SendResponse(ctx)
+	utils.PaginatedSuccessResponse(ctx, users, page, limit, total)
 }
