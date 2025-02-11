@@ -14,6 +14,18 @@ import (
 // a JSON object with a "users" key that contains the list of users.
 // The response also contains "prev" and "next" keys that indicate
 // whether there are previous and next pages of results, respectively.
+
+// @Summary      Get a list of users
+// @Description  Get a paginated list of users
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.PaginatedResponse
+// @Param        page      query     int     false  "Page number"     default(1)
+// @Param        limit  query     int     false  "Items per page"  default(10)
+// @Param        name  query     string     false  "sorted by name"
+// @Router       /v1/user/list [get]
+// @Security     ApiKeyAuth
 func GetUsers(ctx *gin.Context) {
 	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(ctx.DefaultQuery("limit", "10"))

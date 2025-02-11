@@ -1,12 +1,15 @@
 package routes
 
 import (
+	"health/docs"
 	"health/middlewares"
 	"health/services"
 	"health/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 // New returns a new gin.Engine instance with routes and middlewares set up.
@@ -23,6 +26,8 @@ func New() *gin.Engine {
 		AuthRoute(v1)
 		UserRoute(v1)
 	}
+	docs.SwaggerInfo.BasePath = "/"
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return r
 }
 

@@ -1,0 +1,64 @@
+basePath: /api/v1
+definitions:
+  utils.PaginatedResponse:
+    properties:
+      current_page:
+        type: integer
+      data: {}
+      message:
+        type: string
+      per_page:
+        type: integer
+      success:
+        type: boolean
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample API for managing users.
+  title: Your API Title
+  version: "1.0"
+paths:
+  /v1/user/list:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of users
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: sorted by name
+        in: query
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.PaginatedResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get a list of users
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: 'Type "Bearer" followed by a space and the token. Example: "<token>"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
