@@ -1,12 +1,14 @@
 package services
 
 import (
+	"context"
 	"errors"
 	db "health/models/db"
 
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -65,4 +67,29 @@ func CheckUserMail(email string) error {
 	}
 
 	return nil
+}
+
+func GetUSers(ctx context.Context, page int, limit int, nameFilter string) ([]db.User, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	skip := (page - 1) * limit
+	filter := bson.M{}
+	if nameFilter != "" {
+		filter["name"] = bson.M{"$regex": nameFilter, "$options": "i"} // Case-insensitive search
+	}
+	var users []db.User
+	opts := options.Find()
+	opts.SetLimit(int64(limit))
+	opts.SetSkip(int64(skip))
+	err := mgm.Coll(&db.User{}).SimpleFind(&users, filter, opts)
+
+	if err != nil {
+		return nil, 0, errors.New("cannot find users")
+	}
+	totalUsers, _ := mgm.Coll(&db.User{}).CountDocuments(ctx, filter)
+	return users, totalUsers, nil
 }

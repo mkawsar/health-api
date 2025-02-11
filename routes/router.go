@@ -20,6 +20,7 @@ func New() *gin.Engine {
 	{
 		PingRoute(v1)
 		AuthRoute(v1)
+		UserRoute(v1)
 	}
 	return r
 }
