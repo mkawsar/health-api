@@ -3,9 +3,11 @@ package controllers
 import (
 	"health/services"
 	"health/utils"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // GetUsers is a gin handler that returns a list of all users in the
@@ -33,4 +35,15 @@ func GetUsers(ctx *gin.Context) {
 	users, total, _ := services.GetUSers(ctx.Request.Context(), page, limit, nameFilter)
 
 	utils.PaginatedSuccessResponse(ctx, users, page, limit, total)
+}
+
+func GetUser(ctx *gin.Context) {
+	id := ctx.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+	user, _ := services.GetUser(objectID)
+	utils.SuccessResponse(ctx, http.StatusOK, user)
 }

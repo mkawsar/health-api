@@ -93,3 +93,15 @@ func GetUSers(ctx context.Context, page int, limit int, nameFilter string) ([]db
 	totalUsers, _ := mgm.Coll(&db.User{}).CountDocuments(ctx, filter)
 	return users, totalUsers, nil
 }
+
+// GetUser retrieves a user from the MongoDB database by the given ObjectID.
+// If the user does not exist, an error is returned.
+func GetUser(id primitive.ObjectID) (*db.User, error) {
+	user := &db.User{}
+	err := mgm.Coll(user).FindByID(id, user)
+
+	if err != nil {
+		return nil, errors.New("cannot find user")
+	}
+	return user, nil
+}
