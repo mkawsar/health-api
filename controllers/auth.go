@@ -14,6 +14,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Register is an endpoint that creates a new user in the MongoDB database.
+// The request body must contain a name, email address and password.
+// The email address must be unique. The password is hashed using bcrypt.
+// The user is created with the role "user".
+// If the user cannot be created, an error is returned.
+// Otherwise, a JSON response with the user is sent.
 func Register(ctx *gin.Context) {
 	var requestBody models.RegisterRequest
 	_ = ctx.ShouldBindBodyWith(&requestBody, binding.JSON)
