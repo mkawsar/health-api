@@ -1,5 +1,10 @@
 basePath: /api/v1
 definitions:
+  requests.UserRequest:
+    properties:
+      name:
+        type: string
+    type: object
   utils.PaginatedResponse:
     properties:
       current_page:
@@ -16,6 +21,14 @@ definitions:
       total_pages:
         type: integer
     type: object
+  utils.Response:
+    properties:
+      data: {}
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -23,6 +36,53 @@ info:
   title: Your API Title
   version: "1.0"
 paths:
+  /v1/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a user by the given ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get a user by ID
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Update a user by the given ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User details
+        in: body
+        name: UserRequest
+        required: true
+        schema:
+          $ref: '#/definitions/requests.UserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update a user
+      tags:
+      - users
   /v1/user/list:
     get:
       consumes:

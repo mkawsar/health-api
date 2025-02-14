@@ -38,7 +38,6 @@ func GetUsers(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id   path      string  true  "User ID"
-// @Success      200  {object}  db.User
 // @Router       /v1/user/{id} [get]
 // @Security     ApiKeyAuth
 func GetUser(ctx *gin.Context) {
