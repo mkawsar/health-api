@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	db "health/models/db"
+	"health/utils/requests"
 
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson"
@@ -104,4 +105,24 @@ func GetUser(id primitive.ObjectID) (*db.User, error) {
 		return nil, errors.New("cannot find user")
 	}
 	return user, nil
+}
+
+// UpdateUser updates the user's name in the MongoDB database with the given ObjectID.
+// The user's name is updated with the name provided in the UserRequest.
+// If the user does not exist, an error is returned.
+// If the user cannot be updated, an error is returned.
+func UpdateUser(id primitive.ObjectID, request *requests.UserRequest) error {
+	user := &db.User{}
+	err := mgm.Coll(user).FindByID(id, user)
+
+	if err != nil {
+		return errors.New("cannot find user")
+	}
+	user.Name = request.Name
+	err = mgm.Coll(user).Update(user)
+	if err != nil {
+		return errors.New("cannot update")
+	}
+
+	return nil
 }
