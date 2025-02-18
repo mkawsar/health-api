@@ -26,6 +26,7 @@ func New() *gin.Engine {
 		AuthRoute(v1)
 		UserRoute(v1)
 	}
+	r.GET("/ws/:room_id", utils.HandleWebSocket)
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	return r
