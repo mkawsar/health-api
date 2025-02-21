@@ -126,7 +126,6 @@ func Refresh(c *gin.Context) {
 // Otherwise, it will retrieve the user from the database and send a 200 response with the user in the response body.
 func GetAuthProfile(c *gin.Context) {
 	userId, exists := c.Get("userId")
-
 	if !exists {
 		utils.ErrorResponse(c, http.StatusBadRequest, "cannot get user")
 		return
