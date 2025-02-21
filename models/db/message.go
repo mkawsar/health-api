@@ -4,11 +4,9 @@ import "github.com/kamva/mgm/v3"
 
 type Message struct {
 	mgm.DefaultModel `bson:",inline"`
-	RoomID           string `bson:"room_id" json:"room_id"`
-	From             string `bson:"from" json:"from"`
-	To               string `bson:"to" json:"to"`
-	Content          string `bson:"content" json:"content"`
-	Type             string `bson:"type" json:"type"`
+	From             string `json:"from" bson:"from"`
+	Text             string `json:"text" bson:"text"`
+	RoomID           string `json:"room_id" bson:"room_id"`
 }
 
 func (model *Message) CollectionName() string {
