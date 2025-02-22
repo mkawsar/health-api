@@ -74,3 +74,20 @@ func Update(ctx *gin.Context) {
 	}
 	utils.SuccessResponse(ctx, http.StatusOK, "User updated successfully")
 }
+
+func Delete(ctx *gin.Context) {
+	idHex := ctx.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(idHex)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+	
+	err = services.DeleteUser(objectID)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+	
+	utils.SuccessResponse(ctx, http.StatusOK, "User deleted successfully")
+}

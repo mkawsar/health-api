@@ -7,6 +7,7 @@ import (
 	"health/utils/requests"
 
 	"github.com/kamva/mgm/v3"
+	"github.com/kamva/mgm/v3/field"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -122,6 +123,15 @@ func UpdateUser(id primitive.ObjectID, request *requests.UserRequest) error {
 	err = mgm.Coll(user).Update(user)
 	if err != nil {
 		return errors.New("cannot update")
+	}
+
+	return nil
+}
+
+func DeleteUser(id primitive.ObjectID) error {
+	result, err := mgm.Coll(&db.User{}).DeleteOne(mgm.Ctx(), bson.M{field.ID: id})
+	if err != nil || result.DeletedCount <= 0 {
+		return errors.New("cannot delete note")
 	}
 
 	return nil
