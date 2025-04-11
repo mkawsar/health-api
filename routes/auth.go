@@ -14,6 +14,6 @@ func AuthRoute(router *gin.RouterGroup) {
 		auth.POST("/register", validators.RegisterValidator(), controllers.Register)
 		auth.POST("/login", validators.LoginValidator(), controllers.Login)
 		auth.POST("/refresh", validators.RefreshValidator(), controllers.Refresh)
-		auth.GET("/profile", middlewares.JwtMiddleware(), controllers.GetAuthProfile)
+		auth.GET("/profile", middlewares.JwtMiddleware(), middlewares.RoleMiddleware("admin", "user"), controllers.GetAuthProfile)
 	}
 }
