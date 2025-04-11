@@ -8,7 +8,6 @@ require (
 	github.com/go-redis/cache/v8 v8.4.4
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v4 v4.5.1
-	github.com/gorilla/websocket v1.5.3
 	github.com/kamva/mgm/v3 v3.5.0
 	github.com/spf13/viper v1.19.0
 	github.com/swaggo/files v1.0.1
@@ -16,7 +15,6 @@ require (
 	github.com/swaggo/swag v1.16.4
 	go.mongodb.org/mongo-driver v1.17.2
 	golang.org/x/crypto v0.26.0
-	golang.org/x/net v0.25.0
 )
 
 require (
@@ -80,6 +78,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
