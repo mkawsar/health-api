@@ -7,7 +7,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
-var passwordRule = []validation.Rule{
+var passwordRule = []validation.Rule {
 	validation.Required,
 	validation.Length(8, 32),
 	validation.Match(regexp.MustCompile(`[a-zA-Z\d]*[a-z][a-zA-Z\d]*[A-Z][a-zA-Z\d]*\d[a-zA-Z\d]*`)).Error("cannot contain whitespaces"),

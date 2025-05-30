@@ -7,6 +7,10 @@ import (
 
 const (
 	RoleUser = "user"
+	RoleAdmin = "admin"
+	RoleDoctor = "doctor"
+	RolePharmacy = "pharmacy"
+	RoleLab = "lab"
 )
 
 type User struct {
