@@ -1,9 +1,11 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"github.com/kamva/mgm/v3"
+)
 
 type Doctor struct {
-	ID primitive.Binary `bson:"_id"`
+	mgm.DefaultModel `bson:",inline"`
 	Name string `bson:"name"`
 	Specialization string `bson:"specialization"`
 	Phone string `bson:"phone"`

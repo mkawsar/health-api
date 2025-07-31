@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/kamva/mgm/v3"
 )
@@ -19,7 +21,9 @@ type User struct {
 	Password         string `json:"-" bson:"password"`
 	Name             string `json:"name" bson:"name"`
 	Role             string `json:"role" bson:"role"`
-	MailVarified     bool   `json:"mail_verified" bson:"mail_verified"`
+	EmailVarified     bool   `json:"mail_verified" bson:"email_verified"`
+	CreatedAt        time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 type UserClaims struct {
@@ -34,7 +38,9 @@ func NewUser(email string, password string, name string, role string) *User {
 		Password:     password,
 		Name:         name,
 		Role:         role,
-		MailVarified: false,
+		EmailVarified: false,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 
