@@ -74,7 +74,7 @@ func Login(c *gin.Context) {
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, gin.H{
-		"user": user,
+		"user":    user,
 		"access":  accessToken.GetResponseJson(),
 		"refresh": refreshToken.GetResponseJson(),
 	})
@@ -114,7 +114,7 @@ func Refresh(c *gin.Context) {
 	accessToken, refreshToken, _ := services.GenerateAccessTokens(user)
 
 	utils.SuccessResponse(c, http.StatusOK, gin.H{
-		"user": user,
+		"user":    user,
 		"access":  accessToken.GetResponseJson(),
 		"refresh": refreshToken.GetResponseJson(),
 	})
