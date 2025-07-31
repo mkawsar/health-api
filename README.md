@@ -59,7 +59,7 @@ To run the application in development mode with live-reloading, you can use [Air
 1. **Install Air**:
 
    ```bash
-   go install github.com/cosmtrek/air@latest
+   go install github.com/cosmtrek/air@v1.40.4
    ```
 2. **Start Air**:
 

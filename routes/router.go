@@ -25,6 +25,7 @@ func New() *gin.Engine {
 		PingRoute(v1)
 		AuthRoute(v1)
 		UserRoute(v1)
+		DoctorRoute(v1)
 	}
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

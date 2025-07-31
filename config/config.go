@@ -18,7 +18,6 @@ func ConnectDB() {
 	defer cancel()
 
 	// Use connect directly
-	// client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGODB_URI")))
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatal(err)
