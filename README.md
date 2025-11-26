@@ -20,6 +20,7 @@ The Health API is a RESTful service built with [Gin](https://github.com/gin-goni
 - **User Authentication**: Secure login and registration system.
 - **Patient Management**: CRUD operations for patient records.
 - **Middleware Support**: Includes JWT authentication middleware.
+- **Database Migrations**: Laravel-style migration and seeder commands.
 - **Structured Project Layout**: Organized into controllers, services, models, and routes.
 
 ## Technologies Used
@@ -75,12 +76,75 @@ To run the application in development mode with live-reloading, you can use [Air
 
    Open your browser and navigate to [http://localhost:8080](http://localhost:8080) to access the application.
 
+## Database Migrations
+
+This project includes Laravel-style migration and seeder commands for managing your database.
+
+### Migration Commands
+
+**Run Migrations:**
+```bash
+make migrate
+# or
+go run cmd/migrate/main.go -command migrate
+```
+
+**Rollback Migrations:**
+```bash
+# Rollback last migration
+make rollback
+
+# Rollback N migrations
+make rollback-steps=3
+```
+
+**Fresh Migrations (Drops all tables and re-runs):**
+```bash
+make fresh
+```
+⚠️ **Warning:** This will delete all data!
+
+**Check Migration Status:**
+```bash
+make status
+```
+
+### Seeder Commands
+
+**Run All Seeders:**
+```bash
+make seed
+# or
+go run cmd/seed/main.go
+```
+
+**Run Specific Seeder:**
+```bash
+make seed-specific name=user_seeder
+# or
+go run cmd/seed/main.go -seeder user_seeder
+```
+
+### Complete Setup Example
+
+```bash
+# Drop all tables and re-run migrations
+make fresh
+
+# Seed the database
+make seed
+```
+
+For more detailed information, see [MIGRATION_COMMANDS.md](MIGRATION_COMMANDS.md).
+
 ## 📁 Project Directory Structure
 
 ```bash
 health-api/ 
   
-    ├── config/ # App configuration (DB, env) 
+    ├── cmd/ # CLI commands (migrate, seed)
+    │   ├── migrate/ # Migration command
+    │   └── seed/ # Seeder command
     
     ├── controllers/ # HTTP handlers 
   
@@ -88,9 +152,13 @@ health-api/
     
     ├── middlewares/ # Custom middleware (e.g., JWT auth) 
     
+    ├── migrations/ # Database migration SQL files
+    
     ├── models/ # Database models (GORM) 
     
     ├── routes/ # API route groupings 
+    
+    ├── seeders/ # Database seeder files
     
     ├── services/ # Business logic 
     
@@ -103,6 +171,10 @@ health-api/
     ├── go.mod # Go module definition 
     
     ├── go.sum # Go module checksums 
+    
+    ├── Makefile # Make commands for migrations and seeders
+    
+    ├── MIGRATION_COMMANDS.md # Detailed migration documentation
     
     └── main.go # Entry point of the application
 ```

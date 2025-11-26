@@ -18,6 +18,11 @@ import (
 var DB *gorm.DB
 var dbOnce sync.Once
 
+// ConnectDB creates a new database connection (for CLI tools)
+func ConnectDB(dsn string) (*gorm.DB, error) {
+	return gorm.Open(mysql.Open(dsn), &gorm.Config{})
+}
+
 // InitMySQL initializes the GORM library with the MySQL connection string.
 // It is called once during application startup.
 func InitMySQL() {
