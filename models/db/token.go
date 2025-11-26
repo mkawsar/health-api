@@ -4,8 +4,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kamva/mgm/v3"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"gorm.io/gorm"
 )
 
 const (
@@ -14,12 +13,13 @@ const (
 )
 
 type Token struct {
-	mgm.DefaultModel `bson:",inline"`
-	User             primitive.ObjectID `json:"user" bson:"user"`
-	Token            string             `json:"token" bson:"token"`
-	Type             string             `json:"type" bson:"type"`
-	ExpriesAt        time.Time          `json:"expries_at" bson:"expries_at"`
-	BlackListed      bool               `json:"blacklisted" bson:"blacklisted"`
+	gorm.Model
+	UserID      uint      `json:"user_id" gorm:"not null;index"`
+	User        User      `json:"user" gorm:"foreignKey:UserID"`
+	Token       string    `json:"token" gorm:"not null;index"`
+	Type        string    `json:"type" gorm:"not null"`
+	ExpriesAt   time.Time `json:"expries_at" gorm:"not null;index"`
+	BlackListed bool      `json:"blacklisted" gorm:"column:blacklisted;default:false"`
 }
 
 // GetResponseJson returns a gin.H representation of the token that is safe for transmission over the network.
@@ -29,17 +29,12 @@ func (model *Token) GetResponseJson() gin.H {
 }
 
 // NewToken creates a new Token with the given user id, token string, token type and expiration time.
-func NewToken(userId primitive.ObjectID, tokenString string, tokenType string, expriesAt time.Time) *Token {
+func NewToken(userId uint, tokenString string, tokenType string, expriesAt time.Time) *Token {
 	return &Token{
-		User:        userId,
+		UserID:      userId,
 		Token:       tokenString,
 		Type:        tokenType,
 		ExpriesAt:   expriesAt,
 		BlackListed: false,
 	}
-}
-
-// CollectionName returns the name of the collection that stores Token documents.
-func (model *Token) CollectionName() string {
-	return "tokens"
 }

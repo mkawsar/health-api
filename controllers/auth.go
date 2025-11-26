@@ -10,11 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Register is an endpoint that creates a new user in the MongoDB database.
+// Register is an endpoint that creates a new user in the PostgreSQL database.
 // The request body must contain a name, email address and password.
 // The email address must be unique. The password is hashed using bcrypt.
 // The user is created with the role "user".
@@ -98,7 +97,7 @@ func Refresh(c *gin.Context) {
 		return
 	}
 
-	user, err := services.FindUserById(token.User)
+	user, err := services.FindUserById(token.UserID)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
@@ -130,6 +129,6 @@ func GetAuthProfile(c *gin.Context) {
 		utils.ErrorResponse(c, http.StatusBadRequest, "cannot get user")
 		return
 	}
-	user, _ := services.FindUserById(userId.(primitive.ObjectID))
+	user, _ := services.FindUserById(userId.(uint))
 	utils.SuccessResponse(c, http.StatusOK, user)
 }

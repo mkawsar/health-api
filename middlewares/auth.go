@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"fmt"
 	db "health/models/db"
 	"health/services"
 	"health/utils"
@@ -28,14 +29,14 @@ func JwtMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		user, _ := services.FindUserById(tokenModel.User)
+		user, _ := services.FindUserById(tokenModel.UserID)
 		if user == nil {
 			utils.ErrorResponse(ctx, http.StatusUnauthorized, "user not found")
 			return
 		}
 
-		ctx.Set("userIdHex", tokenModel.User.Hex())
-		ctx.Set("userId", tokenModel.User)
+		ctx.Set("userIdHex", fmt.Sprintf("%d", tokenModel.UserID))
+		ctx.Set("userId", tokenModel.UserID)
 		ctx.Set("role", user.Role)
 		ctx.Next()
 	}

@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // @Summary      Get a list of users
@@ -42,12 +41,12 @@ func GetUsers(ctx *gin.Context) {
 // @Security     ApiKeyAuth
 func GetUser(ctx *gin.Context) {
 	id := ctx.Param("id")
-	objectID, err := primitive.ObjectIDFromHex(id)
+	userId, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid user id")
 		return
 	}
-	user, _ := services.GetUser(objectID)
+	user, _ := services.GetUser(uint(userId))
 	utils.SuccessResponse(ctx, http.StatusOK, user)
 }
 
@@ -63,11 +62,15 @@ func GetUser(ctx *gin.Context) {
 // @Security     ApiKeyAuth
 func Update(ctx *gin.Context) {
 	id := ctx.Param("id")
-	userId, _ := primitive.ObjectIDFromHex(id)
+	userId, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid user id")
+		return
+	}
 	var request requests.UserRequest
 	_ = ctx.ShouldBindBodyWith(&request, binding.JSON)
 
-	err := services.UpdateUser(userId, &request)
+	err = services.UpdateUser(uint(userId), &request)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
@@ -76,14 +79,14 @@ func Update(ctx *gin.Context) {
 }
 
 func Delete(ctx *gin.Context) {
-	idHex := ctx.Param("id")
-	objectID, err := primitive.ObjectIDFromHex(idHex)
+	id := ctx.Param("id")
+	userId, err := strconv.ParseUint(id, 10, 32)
 	if err != nil {
-		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid user id")
 		return
 	}
 	
-	err = services.DeleteUser(objectID)
+	err = services.DeleteUser(uint(userId))
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return

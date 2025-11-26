@@ -1,25 +1,21 @@
 package models
 
 import (
-	"github.com/kamva/mgm/v3"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"gorm.io/gorm"
 )
 
 type Note struct {
-	mgm.DefaultModel `bson:",inline"`
-	Author           string `json:"author" bson:"author"`
-	Title            string `json:"title" bson:"title"`
-	Content          string `json:"content" bson:"content"`
+	gorm.Model
+	AuthorID uint   `json:"author_id" gorm:"not null;index"`
+	Author   User   `json:"author" gorm:"foreignKey:AuthorID"`
+	Title    string `json:"title" gorm:"not null"`
+	Content  string `json:"content" gorm:"type:text"`
 }
 
-func NewNote(author primitive.ObjectID, title string, content string) *Note {
+func NewNote(authorID uint, title string, content string) *Note {
 	return &Note{
-		Author:  author.Hex(),
-		Title:   title,
-		Content: content,
+		AuthorID: authorID,
+		Title:    title,
+		Content:  content,
 	}
-}
-
-func (model *Note) CollectionName() string {
-	return "notes"
 }

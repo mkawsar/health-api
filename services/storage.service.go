@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	models "health/models/db"
 	"log"
 	"sync"
@@ -10,21 +11,44 @@ import (
 
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
-	"github.com/kamva/mgm/v3"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
-// InitMongoDB initializes the mgm library with the MongoDB URI and database name.
-// It is called once during application startup.
-func InitMongoDB() {
-	// Setup the mgm default config
-	err := mgm.SetDefaultConfig(nil, Config.MongodbDatabase, options.Client().ApplyURI(Config.MongodbUri))
-	if err != nil {
-		panic(err)
-	}
+var DB *gorm.DB
+var dbOnce sync.Once
 
-	log.Println("Connected to MongoDB!")
+// InitMySQL initializes the GORM library with the MySQL connection string.
+// It is called once during application startup.
+func InitMySQL() {
+	dbOnce.Do(func() {
+		charset := Config.MySQLCharset
+		if charset == "" {
+			charset = "utf8mb4"
+		}
+
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
+			Config.MySQLUser,
+			Config.MySQLPassword,
+			Config.MySQLHost,
+			Config.MySQLPort,
+			Config.MySQLDatabase,
+			charset,
+		)
+
+		var err error
+		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			panic(fmt.Sprintf("Failed to connect to MySQL: %v", err))
+		}
+
+		// Run manual migrations
+		if err = RunMigrations(DB); err != nil {
+			panic(fmt.Sprintf("Failed to run migrations: %v", err))
+		}
+
+		log.Println("Connected to MySQL!")
+	})
 }
 
 var redisDefaultClient *redis.Client
@@ -76,17 +100,17 @@ func CheckRedisCacheConnection() {
 }
 
 // getNoteCacheKey generates a cache key for a note belonging to a specific user.
-// The key is constructed using the user's ObjectID and the note's ObjectID,
+// The key is constructed using the user's ID and the note's ID,
 // and is formatted as "req.cache.note:<userId>:<noteId>".
 
-func getNoteCacheKey(userId primitive.ObjectID, noteId primitive.ObjectID) string {
-	return "req.cache.note:" + userId.Hex() + ":" + noteId.Hex()
+func getNoteCacheKey(userId uint, noteId uint) string {
+	return fmt.Sprintf("req.cache.note:%d:%d", userId, noteId)
 }
 
 // CacheOneNote stores a single note in Redis cache with a TTL of 1 minute,
-// using a cache key constructed from the user's ObjectID and the note's ObjectID.
+// using a cache key constructed from the user's ID and the note's ID.
 // The function does nothing if the UseRedis configuration option is disabled.
-func CacheOneNote(userId primitive.ObjectID, note *models.Note) {
+func CacheOneNote(userId uint, note *models.Note) {
 	if !Config.UseRedis {
 		return
 	}
@@ -101,7 +125,7 @@ func CacheOneNote(userId primitive.ObjectID, note *models.Note) {
 	})
 }
 
-func GetNoteFromCache(userId primitive.ObjectID, noteId primitive.ObjectID) (*models.Note, error) {
+func GetNoteFromCache(userId uint, noteId uint) (*models.Note, error) {
 	if !Config.UseRedis {
 		return nil, errors.New("no redis client, set USE_REDIS in .env")
 	}

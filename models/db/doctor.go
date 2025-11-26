@@ -1,22 +1,22 @@
 package models
 
 import (
-	"github.com/kamva/mgm/v3"
+	"gorm.io/gorm"
 )
 
 type Doctor struct {
-	mgm.DefaultModel `bson:",inline"`
-	Name             string   `bson:"name"`
-	Specialization   string   `bson:"specialization"`
-	Phone            string   `bson:"phone"`
-	Experience       string   `bson:"experience"`
-	Location         string   `bson:"location"`
-	License          string   `bson:"license"`
-	WorkHours        string   `bson:"work_hours"`
-	Availability     bool     `bson:"availability"`
-	WorkDays         []string `bson:"work_days"`
-	WorkTime         []string `bson:"work_time"`
-	WorkTimeEnd      []string `bson:"work_time_end"`
+	gorm.Model
+	Name           string   `gorm:"not null"`
+	Specialization string   `gorm:"not null"`
+	Phone          string   `gorm:"not null"`
+	Experience     string   `gorm:"type:text"`
+	Location       string   `gorm:"not null"`
+	License        string   `gorm:"uniqueIndex;not null"`
+	WorkHours      string   `gorm:"type:varchar(100)"`
+	Availability   bool     `gorm:"default:true"`
+	WorkDays       []string `gorm:"type:json"`
+	WorkTime       []string `gorm:"type:json"`
+	WorkTimeEnd    []string `gorm:"type:json"`
 }
 
 func NewDoctor(name string, specialization string, phone string, experience string, location string, license string, workHours string, availability bool, workDays []string, workTime []string, workTimeEnd []string) *Doctor {
@@ -33,8 +33,4 @@ func NewDoctor(name string, specialization string, phone string, experience stri
 		WorkTime:       workTime,
 		WorkTimeEnd:    workTimeEnd,
 	}
-}
-
-func (model *Doctor) CollectionName() string {
-	return "doctors"
 }

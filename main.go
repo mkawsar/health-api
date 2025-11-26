@@ -22,7 +22,7 @@ import (
 // @description                 Type "Bearer" followed by a space and the token. Example: "<token>"
 func main() {
 	services.LoadConfig()
-	services.InitMongoDB()
+	services.InitMySQL()
 	if services.Config.UseRedis {
 		services.CheckRedisCacheConnection()
 	}
