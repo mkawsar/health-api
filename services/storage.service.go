@@ -24,13 +24,13 @@ var dbOnce sync.Once
 // It is called once during application startup.
 func InitMongoDB() {
 	dbOnce.Do(func() {
-		// Setup the mgm default config
-		err := mgm.SetDefaultConfig(nil, Config.MongodbDatabase, options.Client().ApplyURI(Config.MongodbUri))
-		if err != nil {
+	// Setup the mgm default config
+	err := mgm.SetDefaultConfig(nil, Config.MongodbDatabase, options.Client().ApplyURI(Config.MongodbUri))
+	if err != nil {
 			panic(fmt.Sprintf("Failed to connect to MongoDB: %v", err))
-		}
+	}
 
-		log.Println("Connected to MongoDB!")
+	log.Println("Connected to MongoDB!")
 		// Note: MongoDB is schema-less, so no migrations are needed
 	})
 }
