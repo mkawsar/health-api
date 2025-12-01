@@ -10,55 +10,41 @@ import (
 
 func main() {
 	services.LoadConfig()
-
-	// Connect to database
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
-		services.Config.MySQLUser,
-		services.Config.MySQLPassword,
-		services.Config.MySQLHost,
-		services.Config.MySQLPort,
-		services.Config.MySQLDatabase,
-		services.Config.MySQLCharset,
-	)
-
-	var err error
-	services.DB, err = services.ConnectDB(dsn)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
-	}
+	services.InitMongoDB()
 
 	// Parse command
 	command := flag.String("command", "", "Migration command: migrate, rollback, fresh, status")
-	steps := flag.Int("steps", 1, "Number of migration steps to rollback (for rollback command)")
 	flag.Parse()
 
 	if *command == "" {
-		flag.Usage()
-		os.Exit(1)
+		fmt.Println("MongoDB Migration Tool")
+		fmt.Println("Note: MongoDB is schema-less and doesn't require SQL migrations.")
+		fmt.Println("Collections are created automatically when first used.")
+		fmt.Println("\nAvailable commands:")
+		fmt.Println("  migrate  - No-op for MongoDB (collections created automatically)")
+		fmt.Println("  rollback - Not applicable for MongoDB")
+		fmt.Println("  fresh    - Drop all collections and recreate")
+		fmt.Println("  status   - Show collection status")
+		os.Exit(0)
 	}
 
 	switch *command {
 	case "migrate":
-		if err := services.RunMigrations(services.DB); err != nil {
-			log.Fatalf("Migration failed: %v", err)
-		}
-		fmt.Println("✓ Migrations completed successfully")
+		fmt.Println("✓ MongoDB is schema-less - no migrations needed")
+		fmt.Println("Collections will be created automatically when first used.")
 
 	case "rollback":
-		if err := services.RollbackMigrations(services.DB, *steps); err != nil {
-			log.Fatalf("Rollback failed: %v", err)
-		}
-		fmt.Printf("✓ Rolled back %d migration(s) successfully\n", *steps)
+		fmt.Println("⚠ Rollback is not applicable for MongoDB (schema-less database)")
 
 	case "fresh":
-		if err := services.FreshMigrations(services.DB); err != nil {
-			log.Fatalf("Fresh migration failed: %v", err)
+		if err := services.FreshMongoDB(); err != nil {
+			log.Fatalf("Fresh operation failed: %v", err)
 		}
-		fmt.Println("✓ Database refreshed successfully")
+		fmt.Println("✓ All collections dropped successfully")
 
 	case "status":
-		if err := services.MigrationStatus(services.DB); err != nil {
-			log.Fatalf("Failed to get migration status: %v", err)
+		if err := services.MongoDBStatus(); err != nil {
+			log.Fatalf("Failed to get status: %v", err)
 		}
 
 	default:

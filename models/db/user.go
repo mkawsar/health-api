@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"gorm.io/gorm"
+	"github.com/kamva/mgm/v3"
 )
 
 const (
@@ -16,15 +16,14 @@ const (
 )
 
 type User struct {
-	ID            uint           `json:"id" gorm:"primaryKey"`
-	CreatedAt     time.Time      `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt     time.Time      `json:"updated_at" gorm:"autoUpdateTime"`
-	DeletedAt     gorm.DeletedAt `json:"deleted_at,omitempty" gorm:"index"`
-	Email         string         `json:"email" gorm:"uniqueIndex;not null"`
-	Password      string         `json:"-" gorm:"not null"`
-	Name          string         `json:"name" gorm:"not null"`
-	Role          string         `json:"role" gorm:"not null;default:'user'"`
-	EmailVerified bool           `json:"mail_verified" gorm:"column:email_verified;default:false"`
+	mgm.DefaultModel `bson:",inline"`
+	Email             string    `json:"email" bson:"email"`
+	Password          string    `json:"-" bson:"password"`
+	Name              string    `json:"name" bson:"name"`
+	Role              string    `json:"role" bson:"role"`
+	EmailVarified     bool      `json:"mail_verified" bson:"email_verified"`
+	CreatedAt         time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 type UserClaims struct {
@@ -39,6 +38,12 @@ func NewUser(email string, password string, name string, role string) *User {
 		Password:      password,
 		Name:          name,
 		Role:          role,
-		EmailVerified: false,
+		EmailVarified: false,
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	}
+}
+
+func (model *User) CollectionName() string {
+	return "users"
 }

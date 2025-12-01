@@ -4,14 +4,20 @@ import (
 	"errors"
 	db "health/models/db"
 	models "health/models"
+
+	"github.com/kamva/mgm/v3"
+	"github.com/kamva/mgm/v3/field"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // CreateNote creates a new note with the given title and content belonging to the user with the given userId.
 // The note is created with a unique ID and the current time as the createdAt and updatedAt timestamps.
 // If the note cannot be created, an error is returned.
-func CreateNote(userId uint, title string, content string) (*db.Note, error) {
+func CreateNote(userId primitive.ObjectID, title string, content string) (*db.Note, error) {
 	note := db.NewNote(userId, title, content)
-	err := DB.Create(note).Error
+	err := mgm.Coll(note).Create(note)
 	if err != nil {
 		return nil, errors.New("cannot create new note")
 	}
@@ -22,13 +28,14 @@ func CreateNote(userId uint, title string, content string) (*db.Note, error) {
 // paginated to the given page and limit.
 // The result is a slice of Note documents.
 // If the page is out of bounds, an error is returned.
-func GetNotes(userId uint, page int, limit int) ([]db.Note, error) {
+func GetNotes(userId primitive.ObjectID, page int, limit int) ([]db.Note, error) {
 	var notes []db.Note
-	offset := page * limit
-	err := DB.Where("author_id = ?", userId).
-		Offset(offset).
-		Limit(limit + 1).
-		Find(&notes).Error
+	findOptions := options.Find().SetSkip(int64(page * limit)).SetLimit(int64(limit + 1))
+	err := mgm.Coll(&db.Note{}).SimpleFind(
+		&notes,
+		bson.M{"author": userId.Hex()},
+		findOptions,
+	)
 
 	if err != nil {
 		return nil, errors.New("cannot find notes")
@@ -36,11 +43,11 @@ func GetNotes(userId uint, page int, limit int) ([]db.Note, error) {
 	return notes, nil
 }
 
-// GetNoteById retrieves a note from the PostgreSQL database by the given noteId, only if the user with the given userId is the author.
+// GetNoteById retrieves a note from the MongoDB database by the given noteId, only if the user with the given userId is the author.
 // If the note does not exist, an error is returned.
-func GetNoteById(userId uint, noteId uint) (*db.Note, error) {
+func GetNoteById(userId primitive.ObjectID, noteId primitive.ObjectID) (*db.Note, error) {
 	note := &db.Note{}
-	err := DB.Where("id = ? AND author_id = ?", noteId, userId).First(note).Error
+	err := mgm.Coll(note).First(bson.M{field.ID: noteId, "author": userId.Hex()}, note)
 	if err != nil {
 		return nil, errors.New("cannot find note")
 	}
@@ -53,16 +60,20 @@ func GetNoteById(userId uint, noteId uint) (*db.Note, error) {
 // If the note does not exist, an error is returned.
 // If the user is not the author, an error is returned.
 // If the note cannot be updated, an error is returned.
-func UpdateNote(userId uint, noteId uint, request *models.NoteRequest) error {
+func UpdateNote(userId primitive.ObjectID, noteId primitive.ObjectID, request *models.NoteRequest) error {
 	note := &db.Note{}
-	err := DB.Where("id = ? AND author_id = ?", noteId, userId).First(note).Error
+	err := mgm.Coll(note).FindByID(noteId, note)
 	if err != nil {
 		return errors.New("cannot find note")
 	}
 
+	if note.Author != userId.Hex() {
+		return errors.New("you cannot update this note")
+	}
+
 	note.Title = request.Title
 	note.Content = request.Content
-	err = DB.Save(note).Error
+	err = mgm.Coll(note).Update(note)
 
 	if err != nil {
 		return errors.New("cannot update")
@@ -73,9 +84,9 @@ func UpdateNote(userId uint, noteId uint, request *models.NoteRequest) error {
 
 // DeleteNote deletes a note with the given noteId if the user with the given userId is the author.
 // If the note does not exist or the deletion fails, an error is returned.
-func DeleteNote(userId uint, noteId uint) error {
-	result := DB.Where("id = ? AND author_id = ?", noteId, userId).Delete(&db.Note{})
-	if result.Error != nil || result.RowsAffected == 0 {
+func DeleteNote(userId primitive.ObjectID, noteId primitive.ObjectID) error {
+	deleteResult, err := mgm.Coll(&db.Note{}).DeleteOne(mgm.Ctx(), bson.M{field.ID: noteId, "author": userId.Hex()})
+	if err != nil || deleteResult.DeletedCount <= 0 {
 		return errors.New("cannot delete note")
 	}
 

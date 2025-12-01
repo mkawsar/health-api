@@ -6,10 +6,15 @@ import (
 	db "health/models/db"
 	"health/utils/requests"
 
+	"github.com/kamva/mgm/v3"
+	"github.com/kamva/mgm/v3/field"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// CreateUser creates a new user in the PostgreSQL database.
+// CreateUser creates a new user in the MongoDB database.
 // The password is hashed using bcrypt.
 // The user is created with the role "user".
 // If the user cannot be created, an error is returned.
@@ -20,7 +25,7 @@ func CreateUser(name string, email string, password string) (*db.User, error) {
 	}
 
 	user := db.NewUser(email, string(pass), name, db.RoleUser)
-	err = DB.Create(user).Error
+	err = mgm.Coll(user).Create(user)
 	if err != nil {
 		return nil, errors.New("cannot create new user")
 	}
@@ -28,11 +33,11 @@ func CreateUser(name string, email string, password string) (*db.User, error) {
 	return user, nil
 }
 
-// FindUserById retrieves a user from the PostgreSQL database by the given ID.
+// FindUserById retrieves a user from the MongoDB database by the given ObjectID.
 // If the user does not exist, an error is returned.
-func FindUserById(userId uint) (*db.User, error) {
+func FindUserById(userId primitive.ObjectID) (*db.User, error) {
 	user := &db.User{}
-	err := DB.First(user, userId).Error
+	err := mgm.Coll(user).FindByID(userId, user)
 	if err != nil {
 		return nil, errors.New("cannot find user")
 	}
@@ -40,11 +45,11 @@ func FindUserById(userId uint) (*db.User, error) {
 	return user, nil
 }
 
-// FindUserByEmail retrieves a user from the PostgreSQL database by the given email address.
+// FindUserByEmail retrieves a user from the MongoDB database by the given email address.
 // If the user does not exist, an error is returned.
 func FindUserByEmail(email string) (*db.User, error) {
 	user := &db.User{}
-	err := DB.Where("email = ?", email).First(user).Error
+	err := mgm.Coll(user).First(bson.M{"email": email}, user)
 	if err != nil {
 		return nil, errors.New("cannot find user")
 	}
@@ -52,16 +57,14 @@ func FindUserByEmail(email string) (*db.User, error) {
 	return user, nil
 }
 
-// CheckUserMail checks if a user with the given email address already exists in the PostgreSQL database.
+// CheckUserMail checks if a user with the given email address already exists in the MongoDB database.
 // If such a user exists, an error is returned.
 // If no such user exists, the function returns nil.
 func CheckUserMail(email string) error {
-	var count int64
-	err := DB.Model(&db.User{}).Where("email = ?", email).Count(&count).Error
-	if err != nil {
-		return err
-	}
-	if count > 0 {
+	user := &db.User{}
+	userCollection := mgm.Coll(user)
+	err := userCollection.First(bson.M{"email": email}, user)
+	if err == nil {
 		return errors.New("email is already in use")
 	}
 
@@ -75,34 +78,29 @@ func GetUSers(ctx context.Context, page int, limit int, nameFilter string) ([]db
 	if limit < 1 {
 		limit = 10
 	}
-	offset := (page - 1) * limit
-
-	var users []db.User
-	query := DB.Model(&db.User{})
-	
+	skip := (page - 1) * limit
+	filter := bson.M{}
 	if nameFilter != "" {
-		query = query.Where("name ILIKE ?", "%"+nameFilter+"%") // Case-insensitive search
+		filter["name"] = bson.M{"$regex": nameFilter, "$options": "i"} // Case-insensitive search
 	}
+	var users []db.User
+	opts := options.Find()
+	opts.SetLimit(int64(limit))
+	opts.SetSkip(int64(skip))
+	err := mgm.Coll(&db.User{}).SimpleFind(&users, filter, opts)
 
-	var totalUsers int64
-	err := query.Count(&totalUsers).Error
-	if err != nil {
-		return nil, 0, errors.New("cannot count usersssss")
-	}
-
-	err = query.Offset(offset).Limit(limit).Find(&users).Error
 	if err != nil {
 		return nil, 0, errors.New("cannot find users")
 	}
-
+	totalUsers, _ := mgm.Coll(&db.User{}).CountDocuments(ctx, filter)
 	return users, totalUsers, nil
 }
 
-// GetUser retrieves a user from the PostgreSQL database by the given ID.
+// GetUser retrieves a user from the MongoDB database by the given ObjectID.
 // If the user does not exist, an error is returned.
-func GetUser(id uint) (*db.User, error) {
+func GetUser(id primitive.ObjectID) (*db.User, error) {
 	user := &db.User{}
-	err := DB.First(user, id).Error
+	err := mgm.Coll(user).FindByID(id, user)
 
 	if err != nil {
 		return nil, errors.New("cannot find user")
@@ -110,19 +108,19 @@ func GetUser(id uint) (*db.User, error) {
 	return user, nil
 }
 
-// UpdateUser updates the user's name in the PostgreSQL database with the given ID.
+// UpdateUser updates the user's name in the MongoDB database with the given ObjectID.
 // The user's name is updated with the name provided in the UserRequest.
 // If the user does not exist, an error is returned.
 // If the user cannot be updated, an error is returned.
-func UpdateUser(id uint, request *requests.UserRequest) error {
+func UpdateUser(id primitive.ObjectID, request *requests.UserRequest) error {
 	user := &db.User{}
-	err := DB.First(user, id).Error
+	err := mgm.Coll(user).FindByID(id, user)
 
 	if err != nil {
 		return errors.New("cannot find user")
 	}
 	user.Name = request.Name
-	err = DB.Save(user).Error
+	err = mgm.Coll(user).Update(user)
 	if err != nil {
 		return errors.New("cannot update")
 	}
@@ -130,9 +128,9 @@ func UpdateUser(id uint, request *requests.UserRequest) error {
 	return nil
 }
 
-func DeleteUser(id uint) error {
-	result := DB.Delete(&db.User{}, id)
-	if result.Error != nil || result.RowsAffected == 0 {
+func DeleteUser(id primitive.ObjectID) error {
+	result, err := mgm.Coll(&db.User{}).DeleteOne(mgm.Ctx(), bson.M{field.ID: id})
+	if err != nil || result.DeletedCount <= 0 {
 		return errors.New("cannot delete user")
 	}
 

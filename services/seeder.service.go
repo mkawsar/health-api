@@ -6,21 +6,19 @@ import (
 	"os"
 	"sort"
 	"strings"
-
-	"gorm.io/gorm"
 )
 
 // Seeder represents a database seeder
 type Seeder struct {
 	Version int
 	Name    string
-	Run     func(*gorm.DB) error
+	Run     func() error
 }
 
 var seeders []Seeder
 
 // RegisterSeeder registers a seeder function
-func RegisterSeeder(version int, name string, run func(*gorm.DB) error) {
+func RegisterSeeder(version int, name string, run func() error) {
 	seeders = append(seeders, Seeder{
 		Version: version,
 		Name:    name,
@@ -29,7 +27,7 @@ func RegisterSeeder(version int, name string, run func(*gorm.DB) error) {
 }
 
 // RunSeeders executes all registered seeders
-func RunSeeders(db *gorm.DB) error {
+func RunSeeders() error {
 	if len(seeders) == 0 {
 		log.Println("No seeders registered")
 		return nil
@@ -45,7 +43,7 @@ func RunSeeders(db *gorm.DB) error {
 	for _, seeder := range seeders {
 		log.Printf("Running seeder %d_%s...", seeder.Version, seeder.Name)
 
-		if err := seeder.Run(db); err != nil {
+		if err := seeder.Run(); err != nil {
 			return fmt.Errorf("seeder %d_%s failed: %w", seeder.Version, seeder.Name, err)
 		}
 
@@ -57,11 +55,11 @@ func RunSeeders(db *gorm.DB) error {
 }
 
 // RunSeeder executes a specific seeder by name
-func RunSeeder(db *gorm.DB, name string) error {
+func RunSeeder(name string) error {
 	for _, seeder := range seeders {
 		if seeder.Name == name {
 			log.Printf("Running seeder %d_%s...", seeder.Version, seeder.Name)
-			if err := seeder.Run(db); err != nil {
+			if err := seeder.Run(); err != nil {
 				return fmt.Errorf("seeder %d_%s failed: %w", seeder.Version, seeder.Name, err)
 			}
 			log.Printf("Seeder %d_%s completed successfully", seeder.Version, seeder.Name)

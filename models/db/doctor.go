@@ -1,57 +1,22 @@
 package models
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-
-	"gorm.io/gorm"
+	"github.com/kamva/mgm/v3"
 )
 
-// StringArray is a custom type for handling JSON arrays in MySQL
-type StringArray []string
-
-// Value implements the driver.Valuer interface
-func (a StringArray) Value() (driver.Value, error) {
-	if len(a) == 0 {
-		return "[]", nil
-	}
-	return json.Marshal(a)
-}
-
-// Scan implements the sql.Scanner interface
-func (a *StringArray) Scan(value interface{}) error {
-	if value == nil {
-		*a = StringArray{}
-		return nil
-	}
-
-	var bytes []byte
-	switch v := value.(type) {
-	case []byte:
-		bytes = v
-	case string:
-		bytes = []byte(v)
-	default:
-		return errors.New("cannot scan non-string value into StringArray")
-	}
-
-	return json.Unmarshal(bytes, a)
-}
-
 type Doctor struct {
-	gorm.Model
-	Name           string      `gorm:"not null"`
-	Specialization string      `gorm:"not null"`
-	Phone          string      `gorm:"not null"`
-	Experience     string      `gorm:"type:text"`
-	Location       string      `gorm:"not null"`
-	License        string      `gorm:"uniqueIndex;not null"`
-	WorkHours      string      `gorm:"type:varchar(100)"`
-	Availability   bool        `gorm:"default:true"`
-	WorkDays       StringArray `gorm:"type:json"`
-	WorkTime       StringArray `gorm:"type:json"`
-	WorkTimeEnd    StringArray `gorm:"type:json"`
+	mgm.DefaultModel `bson:",inline"`
+	Name             string   `bson:"name"`
+	Specialization   string   `bson:"specialization"`
+	Phone            string   `bson:"phone"`
+	Experience       string   `bson:"experience"`
+	Location         string   `bson:"location"`
+	License          string   `bson:"license"`
+	WorkHours        string   `bson:"work_hours"`
+	Availability     bool     `bson:"availability"`
+	WorkDays         []string `bson:"work_days"`
+	WorkTime         []string `bson:"work_time"`
+	WorkTimeEnd      []string `bson:"work_time_end"`
 }
 
 func NewDoctor(name string, specialization string, phone string, experience string, location string, license string, workHours string, availability bool, workDays []string, workTime []string, workTimeEnd []string) *Doctor {
@@ -64,8 +29,12 @@ func NewDoctor(name string, specialization string, phone string, experience stri
 		License:        license,
 		WorkHours:      workHours,
 		Availability:   availability,
-		WorkDays:       StringArray(workDays),
-		WorkTime:       StringArray(workTime),
-		WorkTimeEnd:    StringArray(workTimeEnd),
+		WorkDays:       workDays,
+		WorkTime:       workTime,
+		WorkTimeEnd:    workTimeEnd,
 	}
+}
+
+func (model *Doctor) CollectionName() string {
+	return "doctors"
 }

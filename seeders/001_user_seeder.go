@@ -1,14 +1,16 @@
 package seeders
 
 import (
+	"errors"
 	models "health/models/db"
 	"health/services"
 
-	"gorm.io/gorm"
+	"github.com/kamva/mgm/v3"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func init() {
-	services.RegisterSeeder(1, "user_seeder", func(database *gorm.DB) error {
+	services.RegisterSeeder(1, "user_seeder", func() error {
 		// Example: Create admin user
 		admin := models.NewUser(
 			"admin@example.com",
@@ -19,18 +21,15 @@ func init() {
 
 		// Check if user already exists
 		var existingUser models.User
-		result := database.Where("email = ?", admin.Email).First(&existingUser)
-		if result.Error == nil {
+		err := mgm.Coll(&models.User{}).First(bson.M{"email": admin.Email}, &existingUser)
+		if err == nil {
 			// User already exists, skip
 			return nil
 		}
-		// If error is not "record not found", return it
-		if result.Error != gorm.ErrRecordNotFound {
-			return result.Error
-		}
 
-		if err := database.Create(admin).Error; err != nil {
-			return err
+		// Create user
+		if err := mgm.Coll(admin).Create(admin); err != nil {
+			return errors.New("cannot create admin user")
 		}
 
 		return nil

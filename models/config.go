@@ -8,12 +8,8 @@ import (
 type EnvConfig struct {
 	ServerPort                 string `mapstructure:"SERVER_PORT"`
 	ServerAddr                 string `mapstructure:"SERVER_ADDR"`
-	MySQLHost                  string `mapstructure:"MYSQL_HOST"`
-	MySQLPort                  string `mapstructure:"MYSQL_PORT"`
-	MySQLUser                  string `mapstructure:"MYSQL_USER"`
-	MySQLPassword              string `mapstructure:"MYSQL_PASSWORD"`
-	MySQLDatabase              string `mapstructure:"MYSQL_DATABASE"`
-	MySQLCharset               string `mapstructure:"MYSQL_CHARSET"`
+	MongodbUri                 string `mapstructure:"MONGO_URI"`
+	MongodbDatabase            string `mapstructure:"MONGO_DATABASE"`
 	UseRedis                   bool   `mapstructure:"USE_REDIS"`
 	RedisDefaultAddr           string `mapstructure:"REDIS_DEFAULT_ADDR"`
 	JWTSecretKey               string `mapstructure:"JWT_SECRET"`
@@ -27,12 +23,8 @@ func (config *EnvConfig) Validate() error {
 		validation.Field(&config.ServerPort, is.Port),
 		validation.Field(&config.ServerAddr, validation.Required),
 
-		validation.Field(&config.MySQLHost, validation.Required),
-		validation.Field(&config.MySQLPort, validation.Required),
-		validation.Field(&config.MySQLUser, validation.Required),
-		validation.Field(&config.MySQLPassword, validation.Required),
-		validation.Field(&config.MySQLDatabase, validation.Required),
-		validation.Field(&config.MySQLCharset, validation.In("utf8", "utf8mb4")),
+		validation.Field(&config.MongodbUri, validation.Required),
+		validation.Field(&config.MongodbDatabase, validation.Required),
 
 		validation.Field(&config.UseRedis, validation.In(true, false)),
 		validation.Field(&config.RedisDefaultAddr),

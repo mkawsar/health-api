@@ -5,6 +5,10 @@ import (
 	"errors"
 
 	db "health/models/db"
+
+	"github.com/kamva/mgm/v3"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func GetDoctors(ctx context.Context, page int, limit int, nameFilter string) ([]db.Doctor, int64, error) {
@@ -14,24 +18,20 @@ func GetDoctors(ctx context.Context, page int, limit int, nameFilter string) ([]
 	if limit < 1 {
 		limit = 10
 	}
-	offset := (page - 1) * limit
-
-	query := DB.Model(&db.Doctor{})
+	skip := (page - 1) * limit
+	filter := bson.M{}
 	if nameFilter != "" {
-		query = query.Where("name ILIKE ?", "%"+nameFilter+"%") // Case-insensitive search
+		filter["name"] = bson.M{"$regex": nameFilter, "$options": "i"} // Case-insensitive search
 	}
-
-	var total int64
-	err := query.Count(&total).Error
-	if err != nil {
-		return nil, 0, errors.New("cannot count doctors")
-	}
-
 	var doctors []db.Doctor
-	err = query.Offset(offset).Limit(limit).Find(&doctors).Error
+	opts := options.Find()
+	opts.SetLimit(int64(limit))
+	opts.SetSkip(int64(skip))
+	err := mgm.Coll(&db.Doctor{}).SimpleFind(&doctors, filter, opts)
+
 	if err != nil {
 		return nil, 0, errors.New("cannot find doctors")
 	}
-
+	total, _ := mgm.Coll(&db.Doctor{}).CountDocuments(ctx, filter)
 	return doctors, total, nil
 }

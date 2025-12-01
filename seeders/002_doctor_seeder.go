@@ -4,11 +4,12 @@ import (
 	models "health/models/db"
 	"health/services"
 
-	"gorm.io/gorm"
+	"github.com/kamva/mgm/v3"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func init() {
-	services.RegisterSeeder(2, "doctor_seeder", func(database *gorm.DB) error {
+	services.RegisterSeeder(2, "doctor_seeder", func() error {
 		// Example: Create sample doctors
 		doctors := []*models.Doctor{
 			models.NewDoctor(
@@ -42,17 +43,14 @@ func init() {
 		for _, doctor := range doctors {
 			// Check if doctor already exists
 			var existingDoctor models.Doctor
-			result := database.Where("license = ?", doctor.License).First(&existingDoctor)
-			if result.Error == nil {
+			err := mgm.Coll(&models.Doctor{}).First(bson.M{"license": doctor.License}, &existingDoctor)
+			if err == nil {
 				// Doctor already exists, skip
 				continue
 			}
-			// If error is not "record not found", return it
-			if result.Error != gorm.ErrRecordNotFound {
-				return result.Error
-			}
 
-			if err := database.Create(doctor).Error; err != nil {
+			// Create doctor
+			if err := mgm.Coll(doctor).Create(doctor); err != nil {
 				return err
 			}
 		}
