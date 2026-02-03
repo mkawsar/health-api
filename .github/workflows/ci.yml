@@ -57,7 +57,17 @@ jobs:
           JWT_REFRESH_EXPIRATION_DAYS: "7"
           MODE: "release"
         run: |
-          go run main.go &
-          sleep 5
-          curl -sf http://localhost:8080/v1/ping || exit 1
-          pkill -f "go run main.go" || true
+          go run main.go > app.log 2>&1 &
+          pid=$!
+          for i in $(seq 1 15); do
+            if curl -sf http://localhost:8080/v1/ping; then
+              echo "DB connection OK"
+              kill $pid 2>/dev/null || true
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "App failed to start. Log:"
+          cat app.log
+          kill $pid 2>/dev/null || true
+          exit 1
