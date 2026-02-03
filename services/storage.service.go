@@ -24,13 +24,13 @@ var dbOnce sync.Once
 // It is called once during application startup.
 func InitMongoDB() {
 	dbOnce.Do(func() {
-	// Setup the mgm default config
-	err := mgm.SetDefaultConfig(nil, Config.MongodbDatabase, options.Client().ApplyURI(Config.MongodbUri))
-	if err != nil {
+		// Setup the mgm default config
+		err := mgm.SetDefaultConfig(nil, Config.MongodbDatabase, options.Client().ApplyURI(Config.MongodbUri))
+		if err != nil {
 			panic(fmt.Sprintf("Failed to connect to MongoDB: %v", err))
-	}
+		}
 
-	log.Println("Connected to MongoDB!")
+		log.Println("Connected to MongoDB!")
 		// Note: MongoDB is schema-less, so no migrations are needed
 	})
 }
@@ -38,13 +38,13 @@ func InitMongoDB() {
 // FreshMongoDB drops all collections in the database
 func FreshMongoDB() error {
 	log.Println("Dropping all collections...")
-	
+
 	// Drop collections
 	userColl := mgm.Coll(&models.User{})
 	doctorColl := mgm.Coll(&models.Doctor{})
 	noteColl := mgm.Coll(&models.Note{})
 	tokenColl := mgm.Coll(&models.Token{})
-	
+
 	collections := []struct {
 		name string
 		coll *mgm.Collection
@@ -54,7 +54,7 @@ func FreshMongoDB() error {
 		{"notes", noteColl},
 		{"tokens", tokenColl},
 	}
-	
+
 	for _, col := range collections {
 		err := col.coll.Collection.Drop(mgm.Ctx())
 		if err != nil {
@@ -63,7 +63,7 @@ func FreshMongoDB() error {
 			log.Printf("Dropped collection: %s", col.name)
 		}
 	}
-	
+
 	log.Println("All collections dropped successfully")
 	return nil
 }
@@ -79,12 +79,12 @@ func MongoDBStatus() error {
 		{"notes", mgm.Coll(&models.Note{})},
 		{"tokens", mgm.Coll(&models.Token{})},
 	}
-	
+
 	fmt.Println("\nMongoDB Collection Status:")
 	fmt.Println("==========================")
 	fmt.Printf("%-20s %-15s\n", "Collection", "Document Count")
 	fmt.Println(strings.Repeat("-", 40))
-	
+
 	for _, col := range collections {
 		count, err := col.coll.CountDocuments(mgm.Ctx(), bson.M{})
 		if err != nil {
@@ -93,7 +93,7 @@ func MongoDBStatus() error {
 			fmt.Printf("%-20s %-15d\n", col.name, count)
 		}
 	}
-	
+
 	fmt.Println()
 	return nil
 }

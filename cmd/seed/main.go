@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"health/services"
 	_ "health/seeders" // Import seeders to register them
+	"health/services"
 	"log"
 )
 
@@ -29,4 +29,3 @@ func main() {
 		log.Println("✓ All seeders completed successfully")
 	}
 }
-

@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	db "health/models/db"
 	models "health/models"
+	db "health/models/db"
 
 	"github.com/kamva/mgm/v3"
 	"github.com/kamva/mgm/v3/field"

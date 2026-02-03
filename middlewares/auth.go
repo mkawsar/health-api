@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 // JwtMiddleware is a middleware that verifies a JWT token from the Authorization header
 // and sets the userId, userIdHex, and role fields in the gin context.
 // If the token is invalid or the user associated with the token cannot be found,

@@ -17,13 +17,13 @@ const (
 
 type User struct {
 	mgm.DefaultModel `bson:",inline"`
-	Email             string    `json:"email" bson:"email"`
-	Password          string    `json:"-" bson:"password"`
-	Name              string    `json:"name" bson:"name"`
-	Role              string    `json:"role" bson:"role"`
-	EmailVarified     bool      `json:"mail_verified" bson:"email_verified"`
-	CreatedAt         time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at" bson:"updated_at"`
+	Email            string    `json:"email" bson:"email"`
+	Password         string    `json:"-" bson:"password"`
+	Name             string    `json:"name" bson:"name"`
+	Role             string    `json:"role" bson:"role"`
+	EmailVarified    bool      `json:"mail_verified" bson:"email_verified"`
+	CreatedAt        time.Time `json:"created_at" bson:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at" bson:"updated_at"`
 }
 
 type UserClaims struct {

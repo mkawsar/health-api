@@ -86,12 +86,12 @@ func Delete(ctx *gin.Context) {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, "invalid user id")
 		return
 	}
-	
+
 	err = services.DeleteUser(userId)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
-	
+
 	utils.SuccessResponse(ctx, http.StatusOK, "User deleted successfully")
 }
