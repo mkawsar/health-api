@@ -55,26 +55,19 @@ The Health API is a RESTful service built with [Gin](https://github.com/gin-goni
    cp .env.example .env
    ```
 
-## Running the Application
-To run the application in development mode with live-reloading, you can use [Air](https://github.com/cosmtrek/air):
-1. **Install Air**:
+## Docker
 
-   ```bash
-   go install github.com/cosmtrek/air@v1.40.4
-   ```
-2. **Start Air**:
+Run the API with MongoDB and Redis using Docker Compose:
 
-   ```bash
-   air
-   ```
-3. **Start the Application**:
+```bash
+# Copy env and start (create .env from .env.example first)
+cp .env.example .env
+docker compose up --build -d
+```
 
-   ```bash
-   go run main.go
-   ```
-4. **Access the Application**:
+The API is at [http://localhost:8080](http://localhost:8080). MongoDB is on **port 27018** (host) so it doesn’t conflict with local MongoDB; connect with `mongodb://localhost:27018`. Redis is on **port 6380** (host) so it doesn’t conflict with local Redis; connect with `localhost:6380`.
 
-   Open your browser and navigate to [http://localhost:8080](http://localhost:8080) to access the application.
+**One image for dev and deploy:** The same Dockerfile builds one image. Use `.env` (or compose) to set `MODE=debug` for development and `MODE=release` for deployment. Optional: `docker build --build-arg TARGET=development -t health-api .` for faster dev builds (no binary stripping).
 
 ## Database Migrations
 
@@ -84,55 +77,19 @@ This project includes Laravel-style migration and seeder commands for managing y
 
 **Run Migrations:**
 ```bash
-make migrate
-# or
-go run cmd/migrate/main.go -command migrate
-```
-
-**Rollback Migrations:**
-```bash
-# Rollback last migration
-make rollback
-
-# Rollback N migrations
-make rollback-steps=3
-```
-
-**Fresh Migrations (Drops all tables and re-runs):**
-```bash
-make fresh
-```
-⚠️ **Warning:** This will delete all data!
-
-**Check Migration Status:**
-```bash
-make status
+docker exec health-api go run cmd/migrate/main.go -command migrate
 ```
 
 ### Seeder Commands
 
 **Run All Seeders:**
 ```bash
-make seed
-# or
-go run cmd/seed/main.go
+docker exec health-api go run cmd/seed/main.go 
 ```
 
 **Run Specific Seeder:**
 ```bash
-make seed-specific name=user_seeder
-# or
-go run cmd/seed/main.go -seeder user_seeder
-```
-
-### Complete Setup Example
-
-```bash
-# Drop all tables and re-run migrations
-make fresh
-
-# Seed the database
-make seed
+docker exec health-api go run cmd/seed/main.go -seeder user_seeder
 ```
 
 For more detailed information, see [MIGRATION_COMMANDS.md](MIGRATION_COMMANDS.md).

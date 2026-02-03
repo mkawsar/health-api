@@ -1,0 +1,9 @@
+.git
+.github
+.env
+*.md
+tmp
+gin-bin
+.vscode
+.DS_Store
+docs/swagger.*
