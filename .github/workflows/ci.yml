@@ -42,6 +42,9 @@ jobs:
       - name: Dependencies
         run: go mod download
 
+      - name: Build
+        run: go build -o health-api main.go
+
       - name: Config for CI
         run: |
           cat > .env << 'EOF'
@@ -59,9 +62,12 @@ jobs:
 
       - name: DB connection
         run: |
-          go run main.go 2>&1 | tee app.log &
+          ./health-api > app.log 2>&1 &
           pid=$!
-          for i in $(seq 1 15); do
+          sleep 3
+          echo "--- app log (first 3s) ---"
+          cat app.log || true
+          for i in $(seq 1 12); do
             if curl -sf http://localhost:8080/v1/ping; then
               echo "DB connection OK"
               kill $pid 2>/dev/null || true
@@ -70,6 +76,6 @@ jobs:
             sleep 1
           done
           echo "App failed to start. Log:"
-          cat app.log
+          cat app.log || true
           kill $pid 2>/dev/null || true
           exit 1
