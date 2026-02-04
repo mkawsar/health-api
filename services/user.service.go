@@ -93,6 +93,9 @@ func GetUSers(ctx context.Context, page int, limit int, nameFilter string) ([]db
 		return nil, 0, errors.New("cannot find users")
 	}
 	totalUsers, _ := mgm.Coll(&db.User{}).CountDocuments(ctx, filter)
+	if totalUsers == 0 {
+		return []db.User{}, 0, nil
+	}
 	return users, totalUsers, nil
 }
 
